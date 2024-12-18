@@ -96,6 +96,33 @@ def asset_from_image(image_file: UploadFile = File(...), settings: GenerationSet
     return StreamingResponse(buffer, media_type="model/gltf-binary")
 
 
+@app.post("/asset-from-storage/")
+def asset_from_storage(image_file: UploadFile = File(...), settings: GenerationSettings = Depends()):
+    """Get a previously generated 3D glb asset from storage.
+    This is mostly for testing of the consumer so it doesn't need to generate every time.
+
+    Args:
+         image_file (UploadFile): An image file of size 1048x1048. Plain background or Alpha
+         settings (GenerationSettings): How to infer the model
+
+    Returns:
+         StreamingResponse: The processed image buffer in PNG format.
+    """
+
+    # Read the image file from the request
+    image = Image.open(BytesIO(image_file.file.read()))
+    logger.info(f"read image of size {image.size}")
+
+    seed = settings.get_seed()
+    logger.info(f"seed is {seed}")
+
+    with open("C:\\SAPDevelop\\trellis\\sample.glb", "rb") as fh:
+        buffer = BytesIO(fh.read())
+
+    # Return the processed image buffer
+    return StreamingResponse(buffer, media_type="model/gltf-binary")
+
+
 if __name__ == "__main__":
     uvicorn.run("serve:app", host="0.0.0.0", port=8000, reload=False, log_level="info", workers=1)
 
