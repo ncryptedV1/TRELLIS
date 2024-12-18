@@ -1,5 +1,5 @@
 # Start from the NVIDIA CUDA base image with Ubuntu 20.04 and CUDA 11.8
-FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu20.04
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
 
 # Set environment variables to prevent interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
