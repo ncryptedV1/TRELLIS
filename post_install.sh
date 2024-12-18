@@ -12,7 +12,7 @@ cd /app
 echo "Installing GPU-dependent packages..."
 
 # Run the setup script for GPU-dependent packages
-/bin/bash ./setup.sh --diffoctreerast --mipgaussian
+/bin/bash ./setup.sh --diffoctreerast --mipgaussian --demo
 
 # Mark completion
 touch /app/.post_install_done
