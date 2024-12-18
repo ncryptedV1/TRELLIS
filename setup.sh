@@ -72,22 +72,23 @@ fi
 
 # Get system information
 WORKDIR=$(pwd)
-PYTORCH_VERSION=$(python -c "import torch; print(torch.__version__)")
+PYTORCH_VERSION_LONG=$(python -c "import torch; print(torch.__version__)")
+PYTORCH_VERSION=$(python -c "import torch; print(torch.__version__.split('+')[0])")
 PLATFORM=$(python -c "import torch; print(('cuda' if torch.version.cuda else ('hip' if torch.version.hip else 'unknown')) if torch.cuda.is_available() else 'cpu')")
 case $PLATFORM in
     cuda)
         CUDA_VERSION=$(python -c "import torch; print(torch.version.cuda)")
         CUDA_MAJOR_VERSION=$(echo $CUDA_VERSION | cut -d'.' -f1)
         CUDA_MINOR_VERSION=$(echo $CUDA_VERSION | cut -d'.' -f2)
-        echo "[SYSTEM] PyTorch Version: $PYTORCH_VERSION, CUDA Version: $CUDA_VERSION"
+        echo "[SYSTEM] PyTorch Version: $PYTORCH_VERSION_LONG, CUDA Version: $CUDA_VERSION"
         ;;
     hip)
         HIP_VERSION=$(python -c "import torch; print(torch.version.hip)")
         HIP_MAJOR_VERSION=$(echo $HIP_VERSION | cut -d'.' -f1)
         HIP_MINOR_VERSION=$(echo $HIP_VERSION | cut -d'.' -f2)
         # Install pytorch 2.4.1 for hip
-        if [ "$PYTORCH_VERSION" != "2.4.1+rocm6.1" ] ; then
-        echo "[SYSTEM] Installing PyTorch 2.4.1 for HIP ($PYTORCH_VERSION -> 2.4.1+rocm6.1)"
+        if [ "$PYTORCH_VERSION_LONG" != "2.4.1+rocm6.1" ] ; then
+        echo "[SYSTEM] Installing PyTorch 2.4.1 for HIP ($PYTORCH_VERSION_LONG -> 2.4.1+rocm6.1)"
             pip install torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/rocm6.1 --user
             mkdir -p /tmp/extensions
             sudo cp /opt/rocm/share/amd_smi /tmp/extensions/amd_smi -r
@@ -95,9 +96,10 @@ case $PLATFORM in
             sudo chmod -R 777 .
             pip install .
             cd $WORKDIR
-            PYTORCH_VERSION=$(python -c "import torch; print(torch.__version__)")
+            PYTORCH_VERSION_LONG=$(python -c "import torch; print(torch.__version__)")
+            PYTORCH_VERSION=$(python -c "import torch; print(torch.__version__.split('+')[0])")
         fi
-        echo "[SYSTEM] PyTorch Version: $PYTORCH_VERSION, HIP Version: $HIP_VERSION"
+        echo "[SYSTEM] PyTorch Version: $PYTORCH_VERSION_LONG, HIP Version: $HIP_VERSION"
         ;;
     *)
         ;;
