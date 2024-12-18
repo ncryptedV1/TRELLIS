@@ -7,7 +7,7 @@ ENV TZ=Etc/UTC
 
 # Install essential packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        python3.8 \
+        python3.10 \
         python3-pip \
         python3-setuptools \
         python3-dev \
@@ -26,8 +26,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libvulkan1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Ensure 'python' and 'pip' point to Python 3.8
-RUN ln -sf /usr/bin/python3.8 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/pip
+# Ensure 'python' and 'pip' point to Python 3.10
+RUN ln -sf /usr/bin/python3.10 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/pip
 
 # Upgrade pip
 RUN pip install --upgrade pip
@@ -69,7 +69,7 @@ RUN mkdir -p /nonexistent && \
 # Change ownership of the /app directory
 RUN chown -R 65534:65534 /app
 # ...and necessary Python directories to UID and GID 65534 (not required as pip falls back to user directory install)
-# RUN chown -R 65534:65534 /usr/local/lib/python3.8/dist-packages /usr/local/bin
+# RUN chown -R 65534:65534 /usr/local/lib/python3.10/dist-packages /usr/local/bin
 
 # Switch to user with UID and GID 65534
 USER 65534:65534
