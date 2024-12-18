@@ -1,11 +1,11 @@
 #!/bin/bash  
 set -e  
-  
+
 # Check if post-install steps have already been run  
 if [ -f /app/.post_install_done ]; then  
     echo "Post-install steps already completed."  
     exit 0  
-fi  
+fi 
   
 echo "Installing GPU-dependent packages..."  
   
@@ -14,7 +14,7 @@ pip install --upgrade pip
   
 # Install GPU-dependent packages  
 pip install --no-cache-dir \  
-    git+https://github.com/Dao-AILab/flash-attention.git@v1.0.4 \  
+    'git+https://github.com/Dao-AILab/flash-attention.git@v1.0.4' \  
     spconv-cu118 \  
     'git+https://github.com/NVlabs/nvdiffrast.git' \  
     'git+https://github.com/JeffreyXiang/diffoctreerast.git' \  

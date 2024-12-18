@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*  
   
 # Ensure 'python' and 'pip' point to Python 3.8  
-# RUN ln -s /usr/bin/python3.8 /usr/bin/python && ln -s /usr/bin/pip3 /usr/bin/pip  
+RUN ln -sf /usr/bin/python3.8 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/pip  
   
 # Upgrade pip  
 RUN pip install --upgrade pip  
@@ -50,10 +50,8 @@ RUN pip install --no-cache-dir \
     einops \  
     ninja \  
     wheel \  
-    gradio  
-  
-# Install packages that don't require GPU during build  
-RUN pip install --no-cache-dir xformers==0.0.20  
+    gradio \  
+    xformers==0.0.20  
   
 # Create g++ wrapper for JIT compilation  
 RUN echo '#!/usr/bin/env bash\nexec /usr/bin/g++ -I/usr/local/cuda/include -I/usr/local/cuda/include/crt "$@"\n' > /usr/local/bin/gxx-wrapper && \  
@@ -64,8 +62,13 @@ ENV CXX=/usr/local/bin/gxx-wrapper
 WORKDIR /app  
 COPY . /app  
   
-# Change ownership of the /app directory to user and group 65534  
-RUN chown -R 65534:65534 /app  
+# Create the /nonexistent directory and set ownership to UID and GID 65534  
+RUN mkdir -p /nonexistent && \  
+    chown -R 65534:65534 /nonexistent  
+  
+# Change ownership of the /app directory and necessary Python directories to UID and GID 65534  
+RUN chown -R 65534:65534 /app
+# RUN chown -R 65534:65534 /app /usr/local/lib/python3.8/dist-packages /usr/local/bin  
   
 # Switch to user with UID and GID 65534  
 USER 65534:65534  
@@ -76,9 +79,6 @@ EXPOSE 7860
 # Set environment variables as needed  
 ENV ATTN_BACKEND=flash-attn  
 ENV SPCONV_ALGO=native  
-  
-# Install packages that cannot be installed at build time (GPU-dependent)  
-# This will be done in the post-install script  
   
 # Set the entrypoint script  
 ENTRYPOINT ["/bin/bash", "/app/onstart.sh"]  
