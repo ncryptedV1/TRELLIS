@@ -29,14 +29,9 @@ RUN echo '#!/usr/bin/env bash\nexec /usr/bin/g++ -I/usr/local/cuda/include -I/us
     chmod +x /usr/local/bin/gxx-wrapper
 ENV CXX=/usr/local/bin/gxx-wrapper
 
-# Copy setup.sh
+# Copy these last, so we can experiment without excessive build times.
 WORKDIR /app
 COPY setup.sh /app/setup.sh
-
-# Run setup.sh - this won't install all the things due to missing GPU in the builder
-RUN ./setup.sh --basic --xformers --flash-attn --vox2seq --spconv --kaolin --nvdiffrast --demo
-
-# Copy these last, so we can experiment without excessive build times.
 COPY trellis         /app/trellis
 COPY app.py          /app/app.py
 COPY example.py      /app/example.py
