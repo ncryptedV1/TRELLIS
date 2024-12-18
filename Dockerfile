@@ -1,5 +1,5 @@
 # Start from the NVIDIA CUDA base image with Ubuntu 22.04 and CUDA 11.8
-FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04 AS builder
 
 # Set environment variables to prevent interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -33,33 +33,43 @@ RUN ln -sf /usr/bin/python3.10 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/
 RUN pip install --upgrade pip
 
 # Install PyTorch with CUDA 11.8 support
-RUN pip install --no-cache-dir 'numpy<2' torch==2.0.1+cu118 torchvision==0.15.2+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
-
-# Install basic Python packages
-RUN pip install --no-cache-dir \
-    scipy \
-    imageio \
-    Pillow \
-    scikit-image \
-    tqdm \
-    matplotlib \
-    opencv-python \
-    typing_extensions \
-    timm \
-    einops \
-    ninja \
-    wheel \
-    gradio \
-    xformers==0.0.20
+RUN pip install --no-cache-dir 'numpy<2' torch==2.4.0+cu118 torchvision==0.19.0+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
 
 # Create g++ wrapper for JIT compilation
 RUN echo '#!/usr/bin/env bash\nexec /usr/bin/g++ -I/usr/local/cuda/include -I/usr/local/cuda/include/crt "$@"\n' > /usr/local/bin/gxx-wrapper && \
     chmod +x /usr/local/bin/gxx-wrapper
 ENV CXX=/usr/local/bin/gxx-wrapper
 
-# Copy application files
+# Copy setup.sh
 WORKDIR /app
-COPY . /app
+COPY setup.sh /app/setup.sh
+
+# Run setup.sh - this won't install all the things due to missing GPU in the builder
+RUN ./setup.sh --basic --xformers --flash-attn --diffoctreerast --vox2seq --spconv --mipgaussian --kaolin --nvdiffrast --demo
+
+# Final stage
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04 AS final
+
+WORKDIR /app
+COPY --from=builder /usr/local/bin/gxx-wrapper /usr/local/bin/gxx-wrapper
+COPY --from=builder /app /app
+
+# Reinstall any runtime tools needed
+# git and build-essential are needed for post_install.sh script.
+RUN apt update && \
+    apt upgrade -y && \
+    apt install -y build-essential \
+                       git && \
+    rm -rf /var/lib/apt/lists/*
+
+# install these last, so we can experiment without excessive build times.
+COPY trellis         /app/trellis
+COPY app.py          /app/app.py
+COPY example.py      /app/example.py
+COPY extensions      /app/extensions
+COPY assets          /app/assets
+COPY onstart.sh      /app/onstart.sh
+COPY post_install.sh /app/post_install.sh
 
 # Create the /nonexistent directory and set ownership to UID and GID 65534
 RUN mkdir -p /nonexistent && \
@@ -80,5 +90,10 @@ EXPOSE 7860
 ENV ATTN_BACKEND=flash-attn
 ENV SPCONV_ALGO=native
 
-# Set the entrypoint script
-ENTRYPOINT ["/bin/bash", "/app/onstart.sh"]  
+# This script runs the post_install steps
+
+# If you're pushing to a container registry, let this run once, run some
+# tests, then do `docker commit` to save the models along with the image.
+# This will ensure that it won't fail at runtime due to models being
+# unavailable, or network restrictions.
+CMD ["/bin/bash", "/app/onstart.sh"]  
