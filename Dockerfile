@@ -1,5 +1,5 @@
-# Start from the NVIDIA CUDA base image with Ubuntu 20.04 and CUDA 11.8
-FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
+# Start from the NVIDIA CUDA base image with Ubuntu 22.04 and CUDA 11.8
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
 
 # Set environment variables to prevent interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -25,6 +25,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         pkg-config \
         libvulkan1 \
     && rm -rf /var/lib/apt/lists/*
+
+RUN ls -alh /usr/bin/python*
+
+RUN ls -alh /usr/bin/pip*
 
 # Ensure 'python' and 'pip' point to Python 3.10
 RUN ln -sf /usr/bin/python3.10 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/pip
