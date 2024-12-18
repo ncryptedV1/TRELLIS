@@ -34,7 +34,7 @@ WORKDIR /app
 COPY setup.sh /app/setup.sh
 
 # Run setup.sh - this won't install all the things due to missing GPU in the builder
-RUN ./setup.sh --basic --xformers --flash-attn --diffoctreerast --vox2seq --spconv --mipgaussian --kaolin --nvdiffrast --demo
+RUN ./setup.sh --basic --xformers --flash-attn --vox2seq --spconv --nvdiffrast --demo
 
 # Copy these last, so we can experiment without excessive build times.
 COPY trellis         /app/trellis
