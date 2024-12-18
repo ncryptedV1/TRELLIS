@@ -66,9 +66,10 @@ COPY . /app
 RUN mkdir -p /nonexistent && \
     chown -R 65534:65534 /nonexistent
 
-# Change ownership of the /app directory and necessary Python directories to UID and GID 65534
+# Change ownership of the /app directory
 RUN chown -R 65534:65534 /app
-# RUN chown -R 65534:65534 /app /usr/local/lib/python3.8/dist-packages /usr/local/bin
+# ...and necessary Python directories to UID and GID 65534 (not required as pip falls back to user directory install)
+# RUN chown -R 65534:65534 /usr/local/lib/python3.8/dist-packages /usr/local/bin
 
 # Switch to user with UID and GID 65534
 USER 65534:65534
