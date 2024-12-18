@@ -56,13 +56,18 @@ COPY --from=builder /app /app
 
 # Reinstall any runtime tools needed
 # git and build-essential are needed for post_install.sh script.
-RUN apt update && \
-    apt upgrade -y && \
-    apt install -y build-essential \
-                       git && \
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends build-essential \
+        python3.10 \
+        python3-pip \
+        git && \
     rm -rf /var/lib/apt/lists/*
 
-# install these last, so we can experiment without excessive build times.
+# Ensure 'python' and 'pip' point to Python 3.10
+RUN ln -sf /usr/bin/python3.10 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/pip
+
+# Copy these last, so we can experiment without excessive build times.
 COPY trellis         /app/trellis
 COPY app.py          /app/app.py
 COPY example.py      /app/example.py
@@ -71,7 +76,7 @@ COPY assets          /app/assets
 COPY onstart.sh      /app/onstart.sh
 COPY post_install.sh /app/post_install.sh
 
-# Create the /nonexistent directory and set ownership to UID and GID 65534
+# Create the /nonexistent (home) directory and set ownership to UID and GID 65534 (AI Core-specific)
 RUN mkdir -p /nonexistent && \
     chown -R 65534:65534 /nonexistent
 
