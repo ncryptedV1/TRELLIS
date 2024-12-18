@@ -1,5 +1,5 @@
 # Start from the NVIDIA CUDA base image with Ubuntu 22.04 and CUDA 11.8
-FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04 AS builder
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
 
 # Set environment variables to prevent interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -7,23 +7,12 @@ ENV TZ=Etc/UTC
 
 # Install essential packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        python3.10 \
-        python3-pip \
-        python3-setuptools \
-        python3-dev \
-        build-essential \
-        git \
-        wget \
-        curl \
-        cmake \
-        ffmpeg \
-        libgl1-mesa-dev \
-        libglib2.0-0 \
-        libsm6 \
-        libxext6 \
-        libxrender-dev \
-        pkg-config \
-        libvulkan1 \
+    python3.10 \
+    python3-pip \
+    python3-setuptools \
+    python3-dev \
+    build-essential \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Ensure 'python' and 'pip' point to Python 3.10
@@ -46,26 +35,6 @@ COPY setup.sh /app/setup.sh
 
 # Run setup.sh - this won't install all the things due to missing GPU in the builder
 RUN ./setup.sh --basic --xformers --flash-attn --diffoctreerast --vox2seq --spconv --mipgaussian --kaolin --nvdiffrast --demo
-
-# Final stage
-FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04 AS final
-
-WORKDIR /app
-COPY --from=builder /usr/local/bin/gxx-wrapper /usr/local/bin/gxx-wrapper
-COPY --from=builder /app /app
-
-# Reinstall any runtime tools needed
-# git and build-essential are needed for post_install.sh script.
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends build-essential \
-        python3.10 \
-        python3-pip \
-        git && \
-    rm -rf /var/lib/apt/lists/*
-
-# Ensure 'python' and 'pip' point to Python 3.10
-RUN ln -sf /usr/bin/python3.10 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/pip
 
 # Copy these last, so we can experiment without excessive build times.
 COPY trellis         /app/trellis
