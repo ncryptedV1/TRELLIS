@@ -22,7 +22,7 @@ RUN ln -sf /usr/bin/python3.10 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/
 RUN pip install --upgrade pip
 
 # Install PyTorch with CUDA 11.8 support
-RUN pip install --no-cache-dir 'numpy<2' torch==2.4.0+cu118 torchvision==0.19.0+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
+RUN pip install --no-cache-dir 'numpy<2' torch==2.4.0 torchvision==0.19.0 --extra-index-url https://download.pytorch.org/whl/cu118
 
 # Create g++ wrapper for JIT compilation
 RUN echo '#!/usr/bin/env bash\nexec /usr/bin/g++ -I/usr/local/cuda/include -I/usr/local/cuda/include/crt "$@"\n' > /usr/local/bin/gxx-wrapper && \
