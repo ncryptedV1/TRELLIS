@@ -26,10 +26,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libvulkan1 \
     && rm -rf /var/lib/apt/lists/*
 
-RUN ls -alh /usr/bin/python*
-
-RUN ls -alh /usr/bin/pip*
-
 # Ensure 'python' and 'pip' point to Python 3.10
 RUN ln -sf /usr/bin/python3.10 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/pip
 
@@ -37,11 +33,10 @@ RUN ln -sf /usr/bin/python3.10 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/
 RUN pip install --upgrade pip
 
 # Install PyTorch with CUDA 11.8 support
-RUN pip install --no-cache-dir torch==2.0.1+cu118 torchvision==0.15.2+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
+RUN pip install --no-cache-dir 'numpy<2' torch==2.0.1+cu118 torchvision==0.15.2+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
 
 # Install basic Python packages
 RUN pip install --no-cache-dir \
-    numpy \
     scipy \
     imageio \
     Pillow \
