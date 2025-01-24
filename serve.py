@@ -3,6 +3,8 @@ import random
 import sys
 import uvicorn
 import logging
+import hashlib
+import json
 
 os.environ['ATTN_BACKEND'] = 'xformers'   # Can be 'flash-attn' or 'xformers', default is 'flash-attn'
 os.environ['SPCONV_ALGO'] = 'native'        # Can be 'native' or 'auto', default is 'auto'.
@@ -22,6 +24,8 @@ from trellis.utils import postprocessing_utils
 pipeline = TrellisImageTo3DPipeline.from_pretrained("models/TRELLIS-image-large")
 pipeline.cuda()
 
+logger = logging.getLogger('uvicorn.info')
+
 
 class GenerationSettings(BaseModel):
     """Settings for the model inference
@@ -38,10 +42,55 @@ class GenerationSettings(BaseModel):
         else:
             return self.seed
 
+    def get_hash(self):
+        # Convert the object to a json dictionary
+        obj_json = self.model_dump_json()
+
+        # Serialize the dictionary to a JSON string
+        # obj_json = json.dumps(obj_dict, sort_keys=True)
+
+        # Generate MD5 hash
+        return hashlib.sha256(obj_json.encode('utf-8')).hexdigest()
+
+
+def cache_filename(settings: GenerationSettings, image: Image) -> str:
+    """Generate a cache filename for the generated asset
+    out of combined hashes of the image and the settings
+    :return: Cache filename for the given parameters
+    """
+    img_bytes = image.tobytes()
+    img_hash = hashlib.sha256(img_bytes).hexdigest()
+    settings_hash = settings.get_hash()
+    return os.path.join(".", ".cache", f"{img_hash}_{settings_hash}.bin")
+
+
+def get_from_cache(settings : GenerationSettings, image: Image) -> BytesIO | None:
+    """Cache lookup for asset generation based on settings and image data
+
+    :return: either the cached asset bytes or None if not found
+    """
+    filename = cache_filename(settings, image)
+
+    if os.path.exists(filename) and os.path.isfile(filename):
+        with open(filename, "rb") as fh:
+            logger.info(f"Found {filename} in cache")
+            return BytesIO(fh.read())
+    else:
+        return None
+
+def put_into_cache(settings : GenerationSettings, image: Image, result: BytesIO):
+    filename = cache_filename(settings, image)
+    logger.info(f"Caching result image {filename}")
+
+    cache_dir_name = os.path.join(".", ".cache")
+    if not os.path.isdir(cache_dir_name):
+        os.mkdir(cache_dir_name)
+
+    with open(filename, "wb") as file:
+        return file.write(result.getvalue())
+
 
 app = FastAPI()
-logger = logging.getLogger('uvicorn.info')
-
 
 @app.get("/")
 def read_root():
@@ -62,6 +111,16 @@ def asset_from_image(image_file: UploadFile = File(...), settings: GenerationSet
 
     # Read the image file from the request
     image = Image.open(BytesIO(image_file.file.read()))
+
+    # See if we have it in cache and if so, return it immediately
+    cached_result = get_from_cache(settings, image)
+    if cached_result:
+        logger.info(f"Returning image from cache")
+        cached_result.seek(0)
+        # Return the processed image buffer
+        return StreamingResponse(cached_result, media_type="model/gltf-binary")
+    else:
+        logger.info(f"Cache miss. Have to generate the image")
 
     seed = settings.get_seed()
 
@@ -90,6 +149,10 @@ def asset_from_image(image_file: UploadFile = File(...), settings: GenerationSet
 
     buffer = BytesIO()
     glb.export(file_obj=buffer, file_type="glb")
+    buffer.seek(0)
+
+    # Cache the image so we don't have to generate it again
+    put_into_cache(settings, image, buffer)
     buffer.seek(0)
 
     # Return the processed image buffer
