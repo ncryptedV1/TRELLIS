@@ -4,7 +4,6 @@ import sys
 import uvicorn
 import logging
 import hashlib
-import json
 
 os.environ['ATTN_BACKEND'] = 'xformers'   # Can be 'flash-attn' or 'xformers', default is 'flash-attn'
 os.environ['SPCONV_ALGO'] = 'native'        # Can be 'native' or 'auto', default is 'auto'.
@@ -46,10 +45,7 @@ class GenerationSettings(BaseModel):
         # Convert the object to a json dictionary
         obj_json = self.model_dump_json()
 
-        # Serialize the dictionary to a JSON string
-        # obj_json = json.dumps(obj_dict, sort_keys=True)
-
-        # Generate MD5 hash
+        # Generate SHA256 hash
         return hashlib.sha256(obj_json.encode('utf-8')).hexdigest()
 
 
