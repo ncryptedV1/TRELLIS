@@ -162,7 +162,11 @@ fi
 
 if [ "$FLASHATTN" = true ] ; then
     if [ "$PLATFORM" = "cuda" ] ; then
-        pip install flash-attn==2.7.3 --no-build-isolation
+        case $CUDA_MAJOR_VERSION in
+            11) pip install flash-attn<2.7.4 --no-build-isolation ;;
+            12) pip install flash-attn>=2.7.4 --no-build-isolation ;;
+            *) echo "[FLASHATTN] Unsupported PyTorch CUDA version: $CUDA_MAJOR_VERSION" ;;
+        esac        
     elif [ "$PLATFORM" = "hip" ] ; then
         echo "[FLASHATTN] Prebuilt binaries not found. Building from source..."
         mkdir -p /tmp/extensions
