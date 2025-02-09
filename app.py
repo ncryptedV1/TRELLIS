@@ -1,6 +1,4 @@
-print("Importing Gradio...")
 import gradio as gr
-print("Importing Gradio LitModel3D...")
 from gradio_litmodel3d import LitModel3D
 
 import os
@@ -13,11 +11,8 @@ import numpy as np
 import imageio
 from easydict import EasyDict as edict
 from PIL import Image
-print("Importing Trellis Pipeline...")
 from trellis.pipelines import TrellisImageTo3DPipeline
-print("Importing Trellis Representations...")
 from trellis.representations import Gaussian, MeshExtractResult
-print("Importing Trellis Utils...")
 from trellis.utils import render_utils, postprocessing_utils
 
 
@@ -256,16 +251,13 @@ def split_image(image: Image.Image) -> List[Image.Image]:
         images.append(Image.fromarray(image[:, s:e+1]))
     return [preprocess_image(image) for image in images]
 
-print("Initializing the Gradio app...")
 with gr.Blocks(delete_cache=(600, 600)) as demo:
-    print("Initializing Gradio Markdown...")
     gr.Markdown("""
     ## Image to 3D Asset with [TRELLIS](https://trellis3d.github.io/)
     * Upload an image and click "Generate" to create a 3D asset. If the image has alpha channel, it be used as the mask. Otherwise, we use `rembg` to remove the background.
     * If you find the generated 3D asset satisfactory, click "Extract GLB" to extract the GLB file and download it.
     """)
     
-    print("Initializing Gradio Components...")
     with gr.Row():
         with gr.Column():
             with gr.Tabs() as input_tabs:
@@ -317,7 +309,6 @@ with gr.Blocks(delete_cache=(600, 600)) as demo:
     output_buf = gr.State()
 
     # Example images at the bottom of the page
-    print("Initializing Gradio Examples...")
     with gr.Row() as single_image_example:
         examples = gr.Examples(
             examples=[
@@ -341,12 +332,9 @@ with gr.Blocks(delete_cache=(600, 600)) as demo:
         )
 
     # Handlers
-    print("Initializing Gradio Handlers...")
     demo.load(start_session)
-    print("Setting up Gradio handlers...")
     demo.unload(end_session)
     
-    print
     single_image_input_tab.select(
         lambda: tuple([False, gr.Row.update(visible=True), gr.Row.update(visible=False)]),
         outputs=[is_multiimage, single_image_example, multiimage_example]
@@ -356,7 +344,6 @@ with gr.Blocks(delete_cache=(600, 600)) as demo:
         outputs=[is_multiimage, single_image_example, multiimage_example]
     )
     
-    print("Setting up Gradio callbacks...")
     image_prompt.upload(
         preprocess_image,
         inputs=[image_prompt],
@@ -412,10 +399,6 @@ with gr.Blocks(delete_cache=(600, 600)) as demo:
 
 # Launch the Gradio app
 if __name__ == "__main__":
-    print("Loading TRELLIS pipeline model...")
     pipeline = TrellisImageTo3DPipeline.from_pretrained("JeffreyXiang/TRELLIS-image-large")
-    print("Setting pipeline to CUDA...")
     pipeline.cuda()
-    print("Launching the Gradio app...")
-    demo.launch()
-    print("Gradio app launched.")
+    demo.launch(share=True)
