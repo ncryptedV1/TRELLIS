@@ -1,22 +1,23 @@
-services:  
-  trellis-gradio-demo:  
-    build:  
-      context: .  
-      dockerfile: Dockerfile  
-    image: trellis-gradio-demo  
-    ports:  
-      - "7860:7860"  
-    environment:  
-      - ATTN_BACKEND=flash-attn  
-      - SPCONV_ALGO=native  
+services:
+  trellis-gradio-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: trellis-gradio-demo
+    ports:
+      - "7860:7860"
+    environment:
+      - ATTN_BACKEND=flash-attn
+      - SPCONV_ALGO=native
+      - PYTHONUNBUFFERED=1
     volumes:
-      - ./.local:/nonexistent/.local  # Bind mount for cached pip installs
-      - ./.cache:/nonexistent/.cache  # Bind mount for cached e.g. torch models cache
-      - ./post_install:/app/post_install  # Bind mount for post-install marker
-    deploy:  
-      resources:  
-        reservations:  
-          devices:  
-            - driver: nvidia  
-              capabilities: [gpu]  
-    runtime: nvidia  
+      - ./.local:/nonexistent/.local # Bind mount for cached pip installs
+      - ./.cache:/nonexistent/.cache # Bind mount for cached e.g. torch models cache
+      - ./post_install:/app/post_install # Bind mount for post-install marker
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [ gpu ]
+    runtime: nvidia
