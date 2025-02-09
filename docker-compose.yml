@@ -10,7 +10,8 @@ services:
       - ATTN_BACKEND=flash-attn  
       - SPCONV_ALGO=native  
     volumes:
-      - ./local_cache:/nonexistent/.local  # Bind mount for cached pip installs
+      - ./.local:/nonexistent/.local  # Bind mount for cached pip installs
+      - ./.cache:/nonexistent/.cache  # Bind mount for cached e.g. torch models cache
       - ./post_install:/app/post_install  # Bind mount for post-install marker
     deploy:  
       resources:  
