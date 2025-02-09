@@ -68,4 +68,4 @@ ENV PATH="/nonexistent/.local/bin:${PATH}"
 # tests, then do `docker commit` to save the models along with the image.
 # This will ensure that it won't fail at runtime due to models being
 # unavailable, or network restrictions.
-CMD ["/bin/bash", "/app/onstart.sh", "&>", "out.txt"]  
+CMD ["/bin/bash", "/app/onstart.sh"]  
