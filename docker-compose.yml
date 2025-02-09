@@ -9,6 +9,9 @@ services:
     environment:  
       - ATTN_BACKEND=flash-attn  
       - SPCONV_ALGO=native  
+    volumes:
+      - ./local_cache:/nonexistent/.local  # Bind mount for cached pip installs
+      - ./post_install_done:/app/.post_install_done  # Bind mount for post-install marker
     deploy:  
       resources:  
         reservations:  
