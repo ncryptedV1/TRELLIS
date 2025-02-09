@@ -18,8 +18,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Ensure 'python' and 'pip' point to Python 3.10
 RUN ln -sf /usr/bin/python3.10 /usr/bin/python && ln -sf /usr/bin/pip3 /usr/bin/pip
 
-# Upgrade pip
-RUN pip install --upgrade pip
+# Upgrade pip, setuptools, and wheel before installing any Python packages
+RUN python -m pip install --upgrade pip wheel setuptools
 
 # Install PyTorch with CUDA 11.8 support
 RUN pip install --no-cache-dir 'numpy<2' torch==2.4.0 torchvision==0.19.0 --extra-index-url https://download.pytorch.org/whl/cu118
