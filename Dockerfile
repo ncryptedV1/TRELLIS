@@ -58,6 +58,9 @@ EXPOSE 7860
 # Set environment variables as needed
 ENV ATTN_BACKEND=flash-attn
 ENV SPCONV_ALGO=native
+# Ensure /nonexistent/.local/bin is in PATH so user-installed packages are accessible
+ENV PATH="/nonexistent/.local/bin:${PATH}"
+
 
 # This script runs the post_install steps
 
