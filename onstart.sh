@@ -9,11 +9,5 @@ fi
 
 echo "Starting TRELLIS Gradio Demo..."
 
-echo "Current working directory:"
-pwd
-
-echo "Contents of /app/app.py:"
-cat /app/app.py
-
 # Start the application
 python /app/app.py
