@@ -9,6 +9,11 @@ fi
 
 cd /app
 
+echo "Testing ninja installation..."
+ninja --version
+echo $? # Exit code should be 0 if ninja is installed
+# if ninja is not installed, installation of flash-attn will take 2h instead of 3-5min
+
 echo "Installing GPU-dependent packages..."
 
 # Run the setup script for GPU-dependent packages
