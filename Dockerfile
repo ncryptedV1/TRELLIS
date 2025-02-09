@@ -52,6 +52,9 @@ RUN chown -R 65534:65534 /app
 # Switch to user with UID and GID 65534
 USER 65534:65534
 
+# Set HOME explicitly for user 65534 (not required as it defaults to /nonexistent but included for robustness)
+ENV HOME=/nonexistent
+
 # Expose the port for Gradio
 EXPOSE 7860
 
@@ -60,9 +63,6 @@ ENV ATTN_BACKEND=flash-attn
 ENV SPCONV_ALGO=native
 # Ensure /nonexistent/.local/bin is in PATH so user-installed packages are accessible
 ENV PATH="/nonexistent/.local/bin:${PATH}"
-
-
-# This script runs the post_install steps
 
 # If you're pushing to a container registry, let this run once, run some
 # tests, then do `docker commit` to save the models along with the image.
