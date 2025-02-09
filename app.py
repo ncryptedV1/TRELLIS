@@ -1,4 +1,6 @@
+print("Importing Gradio...")
 import gradio as gr
+print("Importing Gradio LitModel3D...")
 from gradio_litmodel3d import LitModel3D
 
 import os
@@ -11,8 +13,11 @@ import numpy as np
 import imageio
 from easydict import EasyDict as edict
 from PIL import Image
+print("Importing Trellis Pipeline...")
 from trellis.pipelines import TrellisImageTo3DPipeline
+print("Importing Trellis Representations...")
 from trellis.representations import Gaussian, MeshExtractResult
+print("Importing Trellis Utils...")
 from trellis.utils import render_utils, postprocessing_utils
 
 
