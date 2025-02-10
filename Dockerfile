@@ -58,7 +58,7 @@ USER 65534:65534
 ENV HOME=/nonexistent
 
 # Expose the port for Gradio
-EXPOSE 7860
+EXPOSE 8080
 
 # Set environment variables as needed
 ENV ATTN_BACKEND=flash-attn
