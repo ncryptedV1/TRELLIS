@@ -6,10 +6,12 @@ import uvicorn
 import logging
 import hashlib
 
-os.environ['ATTN_BACKEND'] = 'xformers'   # Can be 'flash-attn' or 'xformers', default is 'flash-attn'
-os.environ['SPCONV_ALGO'] = 'native'        # Can be 'native' or 'auto', default is 'auto'.
-                                            # 'auto' is faster but will do benchmarking at the beginning.
-                                            # Recommended to set to 'native' if run only once.
+os.environ["ATTN_BACKEND"] = (
+    "xformers"  # Can be 'flash-attn' or 'xformers', default is 'flash-attn'
+)
+os.environ["SPCONV_ALGO"] = "native"  # Can be 'native' or 'auto', default is 'auto'.
+# 'auto' is faster but will do benchmarking at the beginning.
+# Recommended to set to 'native' if run only once.
 
 from fastapi import FastAPI, File, UploadFile, Depends
 from fastapi.responses import StreamingResponse
@@ -24,12 +26,12 @@ from trellis.utils import postprocessing_utils
 pipeline = TrellisImageTo3DPipeline.from_pretrained("models/TRELLIS-image-large")
 pipeline.cuda()
 
-logger = logging.getLogger('uvicorn.info')
+logger = logging.getLogger("uvicorn.info")
 
 
 class GenerationSettings(BaseModel):
-    """Settings for the model inference
-    """
+    """Settings for the model inference"""
+
     # 0 means random seed
     seed: int = 0
 
@@ -47,7 +49,7 @@ class GenerationSettings(BaseModel):
         obj_json = self.model_dump_json()
 
         # Generate SHA256 hash
-        return hashlib.sha256(obj_json.encode('utf-8')).hexdigest()
+        return hashlib.sha256(obj_json.encode("utf-8")).hexdigest()
 
 
 def cache_filename(settings: GenerationSettings, image: Image) -> str:
@@ -61,7 +63,7 @@ def cache_filename(settings: GenerationSettings, image: Image) -> str:
     return os.path.join(".", ".cache", f"{img_hash}_{settings_hash}.bin")
 
 
-def get_from_cache(settings : GenerationSettings, image: Image) -> BytesIO | None:
+def get_from_cache(settings: GenerationSettings, image: Image) -> BytesIO | None:
     """Cache lookup for asset generation based on settings and image data
 
     :return: either the cached asset bytes or None if not found
@@ -75,7 +77,8 @@ def get_from_cache(settings : GenerationSettings, image: Image) -> BytesIO | Non
     else:
         return None
 
-def put_into_cache(settings : GenerationSettings, image: Image, result: BytesIO):
+
+def put_into_cache(settings: GenerationSettings, image: Image, result: BytesIO):
     filename = cache_filename(settings, image)
     logger.info(f"Caching result image {filename}")
 
@@ -89,13 +92,16 @@ def put_into_cache(settings : GenerationSettings, image: Image, result: BytesIO)
 
 app = FastAPI()
 
+
 @app.get("/")
 def read_root():
     return {"Welcome": "Trellis 3D asset generation"}
 
 
 @app.post("/asset-from-image/")
-def asset_from_image(image_file: UploadFile = File(...), settings: GenerationSettings = Depends()):
+def asset_from_image(
+    image_file: UploadFile = File(...), settings: GenerationSettings = Depends()
+):
     """Upload an image and create a 3D glb asset from it.
 
     Args:
@@ -137,8 +143,8 @@ def asset_from_image(image_file: UploadFile = File(...), settings: GenerationSet
     )
 
     glb = postprocessing_utils.to_glb(
-        outputs['gaussian'][0],
-        outputs['mesh'][0],
+        outputs["gaussian"][0],
+        outputs["mesh"][0],
         # Optional parameters
         simplify=0.95,  # Ratio of triangles to remove in the simplification process
         texture_size=1024,  # Size of the texture used for the GLB
@@ -157,7 +163,9 @@ def asset_from_image(image_file: UploadFile = File(...), settings: GenerationSet
 
 
 @app.post("/asset-from-storage/")
-def asset_from_storage(image_file: UploadFile = File(...), settings: GenerationSettings = Depends()):
+def asset_from_storage(
+    image_file: UploadFile = File(...), settings: GenerationSettings = Depends()
+):
     """Get a previously generated 3D glb asset from storage.
     This is mostly for testing of the consumer so it doesn't need to generate every time.
 
@@ -184,10 +192,17 @@ def asset_from_storage(image_file: UploadFile = File(...), settings: GenerationS
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", "-p", type=int, default=8080, help="expose API on this port")
+    parser.add_argument(
+        "--port", "-p", type=int, default=8080, help="expose API on this port"
+    )
     args = parser.parse_args()
 
-    uvicorn.run("serve:app", host="0.0.0.0", port=args.port, reload=False, log_level="info", workers=1)
-
+    uvicorn.run(
+        "serve:app",
+        host="0.0.0.0",
+        port=args.port,
+        reload=False,
+        log_level="info",
+        workers=1,
+    )
