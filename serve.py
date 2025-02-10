@@ -194,7 +194,7 @@ def asset_from_storage(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--port", "-p", type=int, default=8080, help="expose API on this port"
+        "--port", "-p", type=int, default=8000, help="expose API on this port"
     )
     args = parser.parse_args()
 
