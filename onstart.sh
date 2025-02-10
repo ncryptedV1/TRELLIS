@@ -7,7 +7,7 @@ if [ ! -f /app/post_install/.post_install_done ]; then
   /bin/bash /app/post_install.sh
 fi
 
-echo "Starting TRELLIS Gradio Demo..."
+echo "Starting TRELLIS..."
 
 # Start the application
 python /app/serve.py
