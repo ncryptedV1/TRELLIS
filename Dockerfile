@@ -31,7 +31,7 @@ ENV CXX=/usr/local/bin/gxx-wrapper
 
 # Install remaining non-GPU dependent packages (GPU-dependent packages are
 # installed using a separate post-install script run on startup)
-RUN pip install --no-cache-dir fastapi==0.115.8 uvicorn==0.34.0
+RUN pip install --no-cache-dir fastapi==0.115.8 uvicorn==0.34.0 python-multipart==0.0.20
 
 # Copy these last, so we can experiment without excessive build times.
 WORKDIR /app
