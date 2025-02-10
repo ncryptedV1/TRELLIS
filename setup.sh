@@ -106,11 +106,13 @@ case $PLATFORM in
 esac
 
 if [ "$BASIC" = true ] ; then
+    echo "[BASIC] Installing basic dependencies..."
     pip install pillow imageio imageio-ffmpeg tqdm easydict opencv-python-headless scipy ninja rembg onnxruntime trimesh xatlas pyvista pymeshfix igraph transformers
     pip install git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8
 fi
 
 if [ "$XFORMERS" = true ] ; then
+    echo "[XFORMERS] Installing xformers..."
     # install xformers
     if [ "$PLATFORM" = "cuda" ] ; then
         if [ "$CUDA_VERSION" = "11.8" ] ; then
@@ -161,10 +163,11 @@ if [ "$XFORMERS" = true ] ; then
 fi
 
 if [ "$FLASHATTN" = true ] ; then
+    echo "[FLASHATTN] Installing flash-attn..."
     if [ "$PLATFORM" = "cuda" ] ; then
         case $CUDA_MAJOR_VERSION in
-            11) pip install flash-attn<2.7.4 --no-build-isolation ;;
-            12) pip install flash-attn>=2.7.4 --no-build-isolation ;;
+            11) pip install "flash-attn<2.7.4" --no-build-isolation ;;
+            12) pip install "flash-attn>=2.7.4" --no-build-isolation ;;
             *) echo "[FLASHATTN] Unsupported PyTorch CUDA version: $CUDA_MAJOR_VERSION" ;;
         esac        
     elif [ "$PLATFORM" = "hip" ] ; then
@@ -181,6 +184,7 @@ if [ "$FLASHATTN" = true ] ; then
 fi
 
 if [ "$KAOLIN" = true ] ; then
+    echo "[KAOLIN] Installing kaolin..."
     # install kaolin
     if [ "$PLATFORM" = "cuda" ] ; then
         case $PYTORCH_VERSION in
@@ -199,6 +203,7 @@ if [ "$KAOLIN" = true ] ; then
 fi
 
 if [ "$NVDIFFRAST" = true ] ; then
+    echo "[NVDIFFRAST] Installing nvdiffrast..."
     if [ "$PLATFORM" = "cuda" ] ; then
         mkdir -p /tmp/extensions
         git clone https://github.com/NVlabs/nvdiffrast.git /tmp/extensions/nvdiffrast
@@ -209,6 +214,7 @@ if [ "$NVDIFFRAST" = true ] ; then
 fi
 
 if [ "$DIFFOCTREERAST" = true ] ; then
+    echo "[DIFFOCTREERAST] Installing diffoctreerast..."
     if [ "$PLATFORM" = "cuda" ] ; then
         mkdir -p /tmp/extensions
         git clone --recurse-submodules https://github.com/JeffreyXiang/diffoctreerast.git /tmp/extensions/diffoctreerast
@@ -219,6 +225,7 @@ if [ "$DIFFOCTREERAST" = true ] ; then
 fi
 
 if [ "$MIPGAUSSIAN" = true ] ; then
+    echo "[MIPGAUSSIAN] Installing mip-splatting..."
     if [ "$PLATFORM" = "cuda" ] ; then
         mkdir -p /tmp/extensions
         git clone https://github.com/autonomousvision/mip-splatting.git /tmp/extensions/mip-splatting
@@ -229,6 +236,7 @@ if [ "$MIPGAUSSIAN" = true ] ; then
 fi
 
 if [ "$VOX2SEQ" = true ] ; then
+    echo "[VOX2SEQ] Installing vox2seq..."
     if [ "$PLATFORM" = "cuda" ] ; then
         mkdir -p /tmp/extensions
         cp -r extensions/vox2seq /tmp/extensions/vox2seq
@@ -239,6 +247,7 @@ if [ "$VOX2SEQ" = true ] ; then
 fi
 
 if [ "$SPCONV" = true ] ; then
+    echo "[SPCONV] Installing spconv..."
     # install spconv
     if [ "$PLATFORM" = "cuda" ] ; then
         case $CUDA_MAJOR_VERSION in
@@ -252,5 +261,6 @@ if [ "$SPCONV" = true ] ; then
 fi
 
 if [ "$DEMO" = true ] ; then
+    echo "[DEMO] Installing all dependencies for demo..."
     pip install gradio==4.44.1 gradio_litmodel3d==0.0.1
 fi
