@@ -11,7 +11,7 @@ cd /app
 
 echo "Installing GPU-dependent packages..."
 # Run the setup script for GPU-dependent packages
-/bin/bash ./setup.sh --basic --xformers --flash-attn --vox2seq --spconv --kaolin --nvdiffrast --diffoctreerast --mipgaussian --demo
+/bin/bash ./setup.sh --basic --xformers --flash-attn --vox2seq --spconv --kaolin --nvdiffrast --diffoctreerast --mipgaussian
 
 # Mark completion
 touch /app/post_install/.post_install_done

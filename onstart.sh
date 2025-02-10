@@ -10,4 +10,4 @@ fi
 echo "Starting TRELLIS Gradio Demo..."
 
 # Start the application
-python /app/app.py
+python /app/serve.py

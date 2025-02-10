@@ -29,16 +29,18 @@ RUN echo '#!/usr/bin/env bash\nexec /usr/bin/g++ -I/usr/local/cuda/include -I/us
     chmod +x /usr/local/bin/gxx-wrapper
 ENV CXX=/usr/local/bin/gxx-wrapper
 
+# Install remaining non-GPU dependent packages (GPU-dependent packages are
+# installed using a separate post-install script run on startup)
+RUN pip install --no-cache-dir uvicorn==0.34.0
+
 # Copy these last, so we can experiment without excessive build times.
 WORKDIR /app
-COPY setup.sh /app/setup.sh
-COPY trellis         /app/trellis
-COPY app.py          /app/app.py
-COPY example.py      /app/example.py
 COPY extensions      /app/extensions
-COPY assets          /app/assets
+COPY trellis         /app/trellis
 COPY onstart.sh      /app/onstart.sh
 COPY post_install.sh /app/post_install.sh
+COPY serve.py        /app/serve.py
+COPY setup.sh        /app/setup.sh
 
 # Create the /nonexistent (home) directory and set ownership to UID and GID 65534 (AI Core-specific)
 RUN mkdir -p /nonexistent && \
