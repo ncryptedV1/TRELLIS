@@ -14,6 +14,6 @@ echo "Installing GPU-dependent packages..."
 /bin/bash ./setup.sh --basic --xformers --flash-attn --vox2seq --spconv --kaolin --nvdiffrast --diffoctreerast --mipgaussian
 
 # Mark completion
-touch /app/post_install/.post_install_done
+mkdir -p /app/post_install && touch /app/post_install/.post_install_done
 
 echo "Post-install steps completed successfully."
