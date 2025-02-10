@@ -1,4 +1,5 @@
 import os
+import argparse
 import random
 import sys
 import uvicorn
@@ -183,5 +184,10 @@ def asset_from_storage(image_file: UploadFile = File(...), settings: GenerationS
 
 
 if __name__ == "__main__":
-    uvicorn.run("serve:app", host="0.0.0.0", port=8000, reload=False, log_level="info", workers=1)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--port", "-p", type=int, default=8080, help="expose API on this port")
+    args = parser.parse_args()
+
+    uvicorn.run("serve:app", host="0.0.0.0", port=args.port, reload=False, log_level="info", workers=1)
 
