@@ -13,7 +13,7 @@ import hashlib
 # 'auto' is faster but will do benchmarking at the beginning.
 # Recommended to set to 'native' if run only once.
 
-from fastapi import FastAPI, File, UploadFile, Depends
+from fastapi import APIRouter, FastAPI, File, UploadFile, Depends
 from fastapi.responses import StreamingResponse
 from io import BytesIO
 from pydantic import BaseModel
@@ -91,14 +91,15 @@ def put_into_cache(settings: GenerationSettings, image: Image, result: BytesIO):
 
 
 app = FastAPI()
+router = APIRouter(prefix="/v1")
 
 
-@app.get("/")
+@router.get("/")
 def read_root():
     return {"Welcome": "Trellis 3D asset generation"}
 
 
-@app.post("/asset-from-image/")
+@router.post("/asset-from-image/")
 def asset_from_image(
     image_file: UploadFile = File(...), settings: GenerationSettings = Depends()
 ):
@@ -162,7 +163,7 @@ def asset_from_image(
     return StreamingResponse(buffer, media_type="model/gltf-binary")
 
 
-@app.post("/asset-from-storage/")
+@router.post("/asset-from-storage/")
 def asset_from_storage(
     image_file: UploadFile = File(...), settings: GenerationSettings = Depends()
 ):
@@ -190,6 +191,8 @@ def asset_from_storage(
     # Return the processed image buffer
     return StreamingResponse(buffer, media_type="model/gltf-binary")
 
+
+app.include_router(router)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
