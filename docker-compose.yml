@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     image: trellis-gradio-demo
     ports:
-      - "8080:8080"
+      - "8080:8000"
     environment:
       - ATTN_BACKEND=flash-attn
       - SPCONV_ALGO=native
