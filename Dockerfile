@@ -5,7 +5,7 @@ FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 
-# Install essential packages
+# Install essential packages (X11 & Mesa-GLX required for open3d)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.10 \
     python3-pip \
@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     build-essential \
     git \
+    libx11-6 \
+    libgl1-mesa-glx \
     && rm -rf /var/lib/apt/lists/*
 
 # Ensure 'python' and 'pip' point to Python 3.10
