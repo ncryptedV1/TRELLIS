@@ -13,7 +13,6 @@ services:
     volumes:
       - ./.local:/nonexistent/.local # Bind mount for cached pip installs
       - ./.cache:/nonexistent/.cache # Bind mount for cached e.g. torch models cache
-      - ./post_install:/app/post_install # Bind mount for post-install marker
     deploy:
       resources:
         reservations:
