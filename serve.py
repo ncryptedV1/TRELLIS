@@ -5,6 +5,7 @@ import sys
 import uvicorn
 import logging
 import hashlib
+from typing import List, Literal
 
 # os.environ["ATTN_BACKEND"] = (
 #     "xformers"  # Can be 'flash-attn' or 'xformers', default is 'flash-attn'
@@ -37,6 +38,13 @@ class GenerationSettings(BaseModel):
 
     sparse_structure_sampler_steps: int = 12
     sparse_structure_sampler_cfg_strength: float = 7.5
+
+    # Stage 2 (SLAT) sampler settings
+    slat_sampler_steps: int = 12
+    slat_sampler_cfg_strength: float = 3.0
+
+    # Multi-image mode for combining conditions across steps
+    multiimage_mode: Literal["stochastic", "multidiffusion"] = "stochastic"
 
     def get_seed(self) -> int:
         if self.seed == 0:
@@ -90,6 +98,42 @@ def put_into_cache(settings: GenerationSettings, image: Image, result: BytesIO):
         return file.write(result.getvalue())
 
 
+def cache_filename_multi(settings: GenerationSettings, images: List[Image]) -> str:
+    """Generate a cache filename for the generated asset from multiple images.
+
+    :return: Cache filename for the given parameters
+    """
+    h = hashlib.sha256()
+    for img in images:
+        h.update(img.tobytes())
+    img_hash = h.hexdigest()
+    settings_hash = settings.get_hash()
+    return os.path.join(".", ".cache", f"multi_{img_hash}_{settings_hash}.bin")
+
+
+def get_from_cache_multi(settings: GenerationSettings, images: List[Image]) -> BytesIO | None:
+    filename = cache_filename_multi(settings, images)
+
+    if os.path.exists(filename) and os.path.isfile(filename):
+        with open(filename, "rb") as fh:
+            logger.info(f"Found {filename} in cache")
+            return BytesIO(fh.read())
+    else:
+        return None
+
+
+def put_into_cache_multi(settings: GenerationSettings, images: List[Image], result: BytesIO):
+    filename = cache_filename_multi(settings, images)
+    logger.info(f"Caching multi-image result {filename}")
+
+    cache_dir_name = os.path.join(".", ".cache")
+    if not os.path.isdir(cache_dir_name):
+        os.mkdir(cache_dir_name)
+
+    with open(filename, "wb") as file:
+        return file.write(result.getvalue())
+
+
 app = FastAPI()
 router = APIRouter(prefix="/v1")
 
@@ -119,12 +163,12 @@ def asset_from_image(
     # See if we have it in cache and if so, return it immediately
     cached_result = get_from_cache(settings, image)
     if cached_result:
-        logger.info(f"Returning image from cache")
+        logger.info("Returning image from cache")
         cached_result.seek(0)
         # Return the processed image buffer
         return StreamingResponse(cached_result, media_type="model/gltf-binary")
     else:
-        logger.info(f"Cache miss. Have to generate the image")
+        logger.info("Cache miss. Have to generate the image")
 
     seed = settings.get_seed()
 
@@ -134,13 +178,13 @@ def asset_from_image(
         # Optional parameters
         seed=seed,
         sparse_structure_sampler_params={
-            "steps": 12,
-            "cfg_strength": 7.5,
+            "steps": settings.sparse_structure_sampler_steps,
+            "cfg_strength": settings.sparse_structure_sampler_cfg_strength,
         },
-        # slat_sampler_params={
-        #     "steps": 12,
-        #     "cfg_strength": 3,
-        # },
+        slat_sampler_params={
+            "steps": settings.slat_sampler_steps,
+            "cfg_strength": settings.slat_sampler_cfg_strength,
+        },
     )
 
     glb = postprocessing_utils.to_glb(
@@ -160,6 +204,69 @@ def asset_from_image(
     buffer.seek(0)
 
     # Return the processed image buffer
+    return StreamingResponse(buffer, media_type="model/gltf-binary")
+
+
+@router.post("/asset-from-images/")
+def asset_from_images(
+    image_files: List[UploadFile] = File(...), settings: GenerationSettings = Depends()
+):
+    """Upload multiple images and create a 3D glb asset from them.
+
+    Args:
+         image_files (List[UploadFile]): A list of image files. Plain background or Alpha.
+         settings (GenerationSettings): How to infer the model
+
+    Returns:
+         StreamingResponse: The processed GLB buffer in binary format.
+    """
+
+    # Read the images from the request
+    images: List[Image] = []
+    for f in image_files:
+        images.append(Image.open(BytesIO(f.file.read())))
+
+    # Cache lookup
+    cached_result = get_from_cache_multi(settings, images)
+    if cached_result:
+        logger.info("Returning multi-image result from cache")
+        cached_result.seek(0)
+        return StreamingResponse(cached_result, media_type="model/gltf-binary")
+    else:
+        logger.info("Cache miss for multi-image. Generating...")
+
+    seed = settings.get_seed()
+
+    # Run the multi-image pipeline
+    outputs = pipeline.run_multi_image(
+        images,
+        seed=seed,
+        sparse_structure_sampler_params={
+            "steps": settings.sparse_structure_sampler_steps,
+            "cfg_strength": settings.sparse_structure_sampler_cfg_strength,
+        },
+        slat_sampler_params={
+            "steps": settings.slat_sampler_steps,
+            "cfg_strength": settings.slat_sampler_cfg_strength,
+        },
+        mode=settings.multiimage_mode,
+    )
+
+    glb = postprocessing_utils.to_glb(
+        outputs["gaussian"][0],
+        outputs["mesh"][0],
+        simplify=0.95,
+        texture_size=1024,
+    )
+
+    buffer = BytesIO()
+    glb.export(file_obj=buffer, file_type="glb")
+    buffer.seek(0)
+
+    # Cache the image so we don't have to generate it again
+    put_into_cache_multi(settings, images, buffer)
+    buffer.seek(0)
+
     return StreamingResponse(buffer, media_type="model/gltf-binary")
 
 
