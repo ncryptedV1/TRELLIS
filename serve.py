@@ -60,7 +60,7 @@ class GenerationSettings(BaseModel):
         return hashlib.sha256(obj_json.encode("utf-8")).hexdigest()
 
 
-def cache_filename(settings: GenerationSettings, image: Image) -> str:
+def cache_filename(settings: GenerationSettings, image: Image.Image) -> str:
     """Generate a cache filename for the generated asset
     out of combined hashes of the image and the settings
     :return: Cache filename for the given parameters
@@ -71,7 +71,7 @@ def cache_filename(settings: GenerationSettings, image: Image) -> str:
     return os.path.join(".", ".cache", f"{img_hash}_{settings_hash}.bin")
 
 
-def get_from_cache(settings: GenerationSettings, image: Image) -> BytesIO | None:
+def get_from_cache(settings: GenerationSettings, image: Image.Image) -> BytesIO | None:
     """Cache lookup for asset generation based on settings and image data
 
     :return: either the cached asset bytes or None if not found
@@ -86,7 +86,7 @@ def get_from_cache(settings: GenerationSettings, image: Image) -> BytesIO | None
         return None
 
 
-def put_into_cache(settings: GenerationSettings, image: Image, result: BytesIO):
+def put_into_cache(settings: GenerationSettings, image: Image.Image, result: BytesIO):
     filename = cache_filename(settings, image)
     logger.info(f"Caching result image {filename}")
 
@@ -98,7 +98,7 @@ def put_into_cache(settings: GenerationSettings, image: Image, result: BytesIO):
         return file.write(result.getvalue())
 
 
-def cache_filename_multi(settings: GenerationSettings, images: List[Image]) -> str:
+def cache_filename_multi(settings: GenerationSettings, images: List[Image.Image]) -> str:
     """Generate a cache filename for the generated asset from multiple images.
 
     :return: Cache filename for the given parameters
@@ -111,7 +111,7 @@ def cache_filename_multi(settings: GenerationSettings, images: List[Image]) -> s
     return os.path.join(".", ".cache", f"multi_{img_hash}_{settings_hash}.bin")
 
 
-def get_from_cache_multi(settings: GenerationSettings, images: List[Image]) -> BytesIO | None:
+def get_from_cache_multi(settings: GenerationSettings, images: List[Image.Image]) -> BytesIO | None:
     filename = cache_filename_multi(settings, images)
 
     if os.path.exists(filename) and os.path.isfile(filename):
@@ -122,7 +122,7 @@ def get_from_cache_multi(settings: GenerationSettings, images: List[Image]) -> B
         return None
 
 
-def put_into_cache_multi(settings: GenerationSettings, images: List[Image], result: BytesIO):
+def put_into_cache_multi(settings: GenerationSettings, images: List[Image.Image], result: BytesIO):
     filename = cache_filename_multi(settings, images)
     logger.info(f"Caching multi-image result {filename}")
 
@@ -222,7 +222,7 @@ def asset_from_images(
     """
 
     # Read the images from the request
-    images: List[Image] = []
+    images: List[Image.Image] = []
     for f in image_files:
         images.append(Image.open(BytesIO(f.file.read())))
 
