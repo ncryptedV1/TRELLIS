@@ -1,0 +1,9 @@
+# Secrets
+.env
+
+# Inputs/Outputs
+*.png
+*.jpg
+*.jpeg
+*.webp
+outputs/
